@@ -179,9 +179,6 @@ ifneq ($(CPU_ONLY), 1)
 endif
 
 LIBRARIES += glog gflags protobuf boost_system boost_filesystem m
-LIBRARIES += hdf5 hdf5_hl
-#LIBRARIES += hdf5_serial hdf5_serial_hl
-#LIBRARIES += glog gflags protobuf boost_system boost_filesystem m hdf5_hl hdf5
 
 # handle IO dependencies
 USE_LEVELDB ?= 1

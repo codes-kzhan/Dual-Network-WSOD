@@ -1,4 +1,4 @@
-function [previous_model, pre_keeps] = weakly_dual_train_step(image_roidb_train, models, box_params, base_select, pre_keeps, gamma, rng_seed, cache_dir, debug_cache_dir)
+function [previous_model, next_keeps] = weakly_dual_train_step(image_roidb_train, models, box_params, base_select, pre_keeps, gamma, class_limit, rng_seed, cache_dir, debug_cache_dir)
 % --------------------------------------------------------
 % R-FCN implementation
 % Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
@@ -68,7 +68,7 @@ function [previous_model, pre_keeps] = weakly_dual_train_step(image_roidb_train,
     for i = 1:numel(image_roidb_train)
       image_label = image_roidb_train(i).image_label;
       image_label = unique(image_label);
-      if (numel(image_label) == 1)
+      if (numel(image_label) <= class_limit)
         P_image_roidb_train{end+1} = image_roidb_train(i);
       end
     end
@@ -77,37 +77,33 @@ function [previous_model, pre_keeps] = weakly_dual_train_step(image_roidb_train,
     fprintf('\n-------Start Loop with total base_select : %4d----- %4d -> %5d\n', base_select, numel(image_roidb_train), numel(P_image_roidb_train));
     [A_image_roidb_train] = weakly_generate_pseudo(models, P_image_roidb_train);
 
-    %Init_Per_Select = [40, 12, 10, 20, 20, 10, 50, 25, 15, 10,...
-    %                   20, 15, 15, 30, 15, 15, 15, 20, 40, 35];
-
+    loss_save_ratio = 0.9;
+    next_keeps = false(size(pre_keeps));
     for idx = 1:numel(models)
         fprintf('>>>>>>>>For %3d : %s\n', idx, models{idx}.name);
-        %PER_Select = ceil(Init_Per_Select * base_select);
+
+        pre_base_select = inloop_cal_num(A_image_roidb_train, classes);
+        if (sum(pre_base_select) >= base_select)
+           pre_base_select = ceil( pre_base_select * base_select / sum(pre_base_select) / loss_save_ratio) + 1;
+        end
+        [S_image_roidb_train] = weakly_filter_score(models, A_image_roidb_train, pre_base_select);
+        [S_image_roidb_train] = weakly_full_targets(models{idx}.conf, S_image_roidb_train, box_params{idx}.bbox_means, box_params{idx}.bbox_stds);
+
+        if (numel(models) == 2),     pre_keep = pre_keeps(:,3-idx);
+        elseif (numel(models) == 1), pre_keep = pre_keeps;
+        else,                        assert(false); end
+        [L_image_roidb_train] = weakly_filter_loss (models{idx}, S_image_roidb_train, pre_keep, loss_save_ratio, gamma);
 
         %% Filter Unreliable Image with pseudo-boxes
-        [B_image_roidb_train] = weakly_clean_data(classes, A_image_roidb_train, 15);
-        [B_image_roidb_train] = weakly_full_targets(models{idx}.conf, B_image_roidb_train, box_params{idx}.bbox_means, box_params{idx}.bbox_stds);
-
-        if (numel(models) == 2) 
-            pre_keep = pre_keeps(:,3-idx);
-        else
-            pre_keep = pre_keeps;
-            assert (numel(models) == 1);
-        end
-        [C_image_roidb_train] = weakly_filter_loss(models{idx}, B_image_roidb_train, pre_keep, 0.9, gamma);
-
-        pre_base_select = inloop_cal_num(C_image_roidb_train, classes);
-        if (sum(pre_base_select) >= base_select)
-           pre_base_select = ceil( pre_base_select * base_select / sum(pre_base_select)) + 1;
-        end
-        [D_image_roidb_train] = weakly_filter_score(models, C_image_roidb_train, pre_base_select);
-        [D_image_roidb_train] = weakly_full_targets(models{idx}.conf, D_image_roidb_train, box_params{idx}.bbox_means, box_params{idx}.bbox_stds);
+        %[B_image_roidb_train] = weakly_clean_data(classes, A_image_roidb_train, 15);
+        %[D_image_roidb_train] = weakly_filter_score(models, C_image_roidb_train, pre_base_select);
+        %[D_image_roidb_train] = weakly_full_targets(models{idx}.conf, D_image_roidb_train, box_params{idx}.bbox_means, box_params{idx}.bbox_stds);
 
         %pre_keep = false(numel(unsupervise_ids), 1);
-        for j = 1:numel(D_image_roidb_train) , pre_keeps(D_image_roidb_train(j).index, idx) = true; end
+        for j = 1:numel(L_image_roidb_train), next_keeps(L_image_roidb_train(j).index, idx) = true; end
         %if (opts.debug), inloop_debug(D_image_roidb_train, classes, debug_cache_dir, ['L_', num2str(index), '_', models{idx}.name, '_D']); end
 
-        new_image_roidb_train = D_image_roidb_train;
+        new_image_roidb_train = L_image_roidb_train;
             
         previous_model{idx}   = weakly_supervised(train_modes{idx}, new_image_roidb_train, models{idx}.solver_def_file, models{idx}.cur_net_file, 1000, ...
                                                       box_params{idx}, models{idx}.conf, cache_dir, models{idx}.name, model_suffix, 'final');

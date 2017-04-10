@@ -51,8 +51,11 @@ end
 function pseudo_boxes = check_filter_score(pseudo_boxes, lower_score)
   class = {pseudo_boxes.class}; class = cat(1, class{:});
   score = {pseudo_boxes.score}; score = cat(1, score{:});
+  boxes = {pseudo_boxes.box};   boxes = cat(1, boxes{:});
   keep = false(numel(pseudo_boxes), 1);
   for i = 1:numel(class)
+    if ( boxes(i,3)-boxes(i,1) >= 15 ), continue; end
+    if ( boxes(i,4)-boxes(i,2) >= 15 ), continue; end
     if (score(i) >= lower_score( class(i) ))
       keep(i) = true;
     end

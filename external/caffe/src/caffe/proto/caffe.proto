@@ -375,8 +375,8 @@ message LayerParameter {
   optional EmbedParameter embed_param = 137;
   optional ExpParameter exp_param = 111;
   optional FlattenParameter flatten_param = 135;
-  optional HDF5DataParameter hdf5_data_param = 112;
-  optional HDF5OutputParameter hdf5_output_param = 113;
+  //optional HDF5DataParameter hdf5_data_param = 112;
+  //optional HDF5OutputParameter hdf5_output_param = 113;
   optional HingeLossParameter hinge_loss_param = 114;
   optional ImageDataParameter image_data_param = 115;
   optional InfogainLossParameter infogain_loss_param = 116;
@@ -753,6 +753,7 @@ message FlattenParameter {
 }
 
 // Message that stores parameters used by HDF5DataLayer
+/*
 message HDF5DataParameter {
   // Specify the data source.
   optional string source = 1;
@@ -770,6 +771,7 @@ message HDF5DataParameter {
 message HDF5OutputParameter {
   optional string file_name = 1;
 }
+*/
 
 message HingeLossParameter {
   enum Norm {
@@ -1242,8 +1244,8 @@ message V1LayerParameter {
     ELTWISE = 25;
     EXP = 38;
     FLATTEN = 8;
-    HDF5_DATA = 9;
-    HDF5_OUTPUT = 10;
+    //HDF5_DATA = 9;
+    //HDF5_OUTPUT = 10;
     HINGE_LOSS = 28;
     IM2COL = 11;
     IMAGE_DATA = 12;
@@ -1288,8 +1290,8 @@ message V1LayerParameter {
   optional DummyDataParameter dummy_data_param = 26;
   optional EltwiseParameter eltwise_param = 24;
   optional ExpParameter exp_param = 41;
-  optional HDF5DataParameter hdf5_data_param = 13;
-  optional HDF5OutputParameter hdf5_output_param = 14;
+  //optional HDF5DataParameter hdf5_data_param = 13;
+  //optional HDF5OutputParameter hdf5_output_param = 14;
   optional HingeLossParameter hinge_loss_param = 29;
   optional ImageDataParameter image_data_param = 15;
   optional InfogainLossParameter infogain_loss_param = 16;
@@ -1402,7 +1404,7 @@ message V0LayerParameter {
   // By default it will concatenate blobs along the channels dimension.
   optional uint32 concat_dim = 65 [default = 1];
 
-  optional HDF5OutputParameter hdf5_output_param = 1001;
+  //optional HDF5OutputParameter hdf5_output_param = 1001;
 }
 
 message PReLUParameter {

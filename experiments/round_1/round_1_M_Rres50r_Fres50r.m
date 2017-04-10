@@ -16,6 +16,8 @@ print_result                = true;
 use_flipped                 = true;
 exclude_difficult_samples   = false;
 rng_seed                    = 5;
+class_limit                 = 1;
+rng_seed                    = randi(10000);
 % model
 models                      = cell(2,1);
 box_param                   = cell(2,1);
@@ -35,7 +37,8 @@ box_param{1}                = load(fullfile(pwd, 'models', 'pre_trained_models',
 models{2}.solver_def_file   = fullfile(pwd, 'models', 'fast_rcnn_prototxts', 'resnet50_res5', 'solver_lr1_3.prototxt');
 models{2}.test_net_def_file = fullfile(pwd, 'models', 'fast_rcnn_prototxts', 'resnet50_res5', 'test.prototxt');
 models{2}.net_file          = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'ResNet-50-model.caffemodel');
-models{2}.cur_net_file      = fullfile(pwd, 'models', 'trained', 'Res50r-SIMPLE-Fast_init_final.caffemodel');
+%models{2}.cur_net_file      = fullfile(pwd, 'models', 'trained', 'Res50r-SIMPLE-Fast_init_final.caffemodel');
+models{2}.cur_net_file      = fullfile(pwd, 'models', 'trained', 'Res50r-SIMPLE-Fast-Stage1_init_final.caffemodel');
 models{2}.name              = 'Res50r-SIMPLE-Fast';
 models{2}.mean_image        = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'mean_image.mat');
 models{2}.conf              = fast_rcnn_config('image_means', models{2}.mean_image, ...
@@ -49,11 +52,11 @@ box_param{2}                = load(fullfile(pwd, 'models', 'pre_trained_models',
 
 % cache name
 if (exclude_difficult_samples == false)
-  difficult_string            = 'difficult';
+  difficult_string          = 'difficult';
 else
-  difficult_string            = 'easy';
+  difficult_string          = 'easy';
 end
-opts.cache_name             = ['R1M-seed_', num2str(rng_seed), '-', models{1}.name, '-', models{2}.name, '-', difficult_string];
+opts.cache_name             = ['R1M-seed_', num2str(rng_seed), '-', models{1}.name, '-', models{2}.name, '-L', num2str(class_limit), '-Rng', num2str(rng_seed), '-', difficult_string];
 
 % dataset
 dataset                     = [];
@@ -69,27 +72,30 @@ debug_cache_dir = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, 'd
 temp = load (fullfile(pwd, 'output', 'weakly_cachedir', 'voc2007_corloc_nms-0.3-0.1-trainval.mat'));
 image_roidb_train = temp.image_roidb_train;
 
-pre_keeps   = zeros(numel(image_roidb_train), numel(models));
-gamma       = 0.3;
-base_select = 3300;
-cache_dir       = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, [imdbs_name, '_step1']);
-debug_cache_dir = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, 'debug_step1');
-[previous_model, pre_keeps] = weakly_dual_train_step(image_roidb_train, models, box_param, base_select, pre_keeps, gamma, rng_seed, cache_dir, debug_cache_dir);
+pre_keeps                   = zeros(numel(image_roidb_train), numel(models));
+gamma                       = 0.3;
+base_select                 = 4000;
+cache_dir                   = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, [imdbs_name, '_step1']);
+debug_cache_dir             = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, 'debug_step1');
+[previous_model, pre_keeps] = weakly_dual_train_step(image_roidb_train, models, box_param, base_select, pre_keeps, gamma, class_limit, rng_seed, cache_dir, debug_cache_dir);
 
-
-base_select = 4300;
-models{1}.cur_net_file = previous_model{1};
-models{2}.cur_net_file = previous_model{2};
-cache_dir       = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, [imdbs_name, '_step2']);
-debug_cache_dir = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, 'debug_step2');
-[previous_model, pre_keeps] = weakly_dual_train_step(image_roidb_train, models, box_param, base_select, pre_keeps, gamma, rng_seed, cache_dir, debug_cache_dir);
-
-
-fprintf('-------------------- TESTING --------------------\n');
-test_time               = tic;
-[mAP, meanloc]          = weakly_test_all({models{1}.conf, models{2}.conf}, dataset.imdb_test, dataset.roidb_test, ...
+test_time                   = tic;
+fprintf('-------------------- TESTING STEP 1 --------------------\n');
+step1_models                = previous_model;
+[mAP, meanloc]              = weakly_test_all({models{1}.conf, models{2}.conf}, dataset.imdb_test, dataset.roidb_test, ...
                                 'net_defs',         {models{1}.test_net_def_file, models{2}.test_net_def_file}, ...
-                                'net_models',       {models{1}.cur_net_file,      models{2}.cur_net_file}, ...
+                                'net_models',       previous_model, ...
                                 'log_prefix',       'co_final', ...
                                 'cache_name',       opts.cache_name,...
                                 'ignore_cache',     true);
+
+
+%{
+base_select            = 4300;
+models{1}.cur_net_file = previous_model{1};
+models{2}.cur_net_file = previous_model{2};
+cache_dir              = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, [imdbs_name, '_step2']);
+debug_cache_dir        = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, 'debug_step2');
+[previous_model, pre_keeps] = weakly_dual_train_step(image_roidb_train, models, box_param, base_select, pre_keeps, gamma, rng_seed, cache_dir, debug_cache_dir);
+
+%}
