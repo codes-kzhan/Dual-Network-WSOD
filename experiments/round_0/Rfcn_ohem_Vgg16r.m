@@ -23,10 +23,10 @@ models                      = cell(1,1);
 box_param                   = cell(1,1);
 models{1}.solver_def_file   = fullfile(pwd, 'models', 'rfcn_prototxts', 'VGG16_OHEM', 'solver_lr1_3.prototxt');
 models{1}.test_net_def_file = fullfile(pwd, 'models', 'rfcn_prototxts', 'VGG16_OHEM', 'test.prototxt');
-models{1}.net_file          = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'ResNet-50-model.caffemodel');
+models{1}.net_file          = fullfile(pwd, 'models', 'pre_trained_models', 'VGG16', 'vgg16.caffemodel');
 models{1}.cur_net_file      = 'unset';
 models{1}.name              = 'Vgg16r-OHEM-Rfcn';
-models{1}.mean_image        = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'mean_image.mat');
+models{1}.mean_image        = fullfile(pwd, 'models', 'pre_trained_models', 'VGG16', 'mean_image.mat');
 models{1}.conf              = rfcn_config_ohem('image_means', models{1}.mean_image, ... 
                                                'classes', classes, ... 
                                                'max_epoch', 4, 'step_epoch', 2, ... 
