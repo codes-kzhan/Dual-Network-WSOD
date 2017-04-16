@@ -15,8 +15,10 @@ classes                     = extra_para.VOCopts.classes;
 print_result                = true;
 use_flipped                 = true;
 exclude_difficult_samples   = false;
-rng_seed                    = 5;
 class_limit                 = 1;
+ctime                       = datestr(now, 30); %取系统时间
+tseed                       = str2num(ctime((end - 5):end)); %将时间字符转换为数字
+rand('seed', tseed);
 rng_seed                    = randi(10000);
 % model
 models                      = cell(2,1);
@@ -65,6 +67,16 @@ dataset                     = Dataset.voc2007_test_ss(dataset, 'test', false, fa
 imdbs_name                  = cell2mat(cellfun(@(x) x.name, dataset.imdb_train,'UniformOutput', false));
 
 
+previous_model              = cell(2,1);
+previous_model{1}           = models{1}.cur_net_file;
+previous_model{2}           = models{2}.cur_net_file;
+[mAP_init, meanloc_init]    = weakly_test_all({models{1}.conf, models{2}.conf}, dataset.imdb_test, dataset.roidb_test, ...
+                                'net_defs',         {models{1}.test_net_def_file, models{2}.test_net_def_file}, ...
+                                'net_models',       previous_model, ...
+                                'log_prefix',       'co_final', ...
+                                'cache_name',       opts.cache_name,...
+                                'ignore_cache',     true);
+
 mkdir_if_missing(['output/', 'weakly_cachedir/', opts.cache_name]);
 cache_dir       = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, imdbs_name);
 debug_cache_dir = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, 'debug');
@@ -75,6 +87,10 @@ image_roidb_train = temp.image_roidb_train;
 pre_keeps                   = zeros(numel(image_roidb_train), numel(models));
 gamma                       = 0.3;
 base_select                 = 4000;
+base_select                 =  [40, 12, 10, 20, 20, 10, 50, 25, 15, 10,...
+                                20, 15, 15, 30, 15, 15, 15, 20, 40, 35];
+base_select                 = ceil(base_select * (4000 / sum(base_select)));
+
 cache_dir                   = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, [imdbs_name, '_step1']);
 debug_cache_dir             = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, 'debug_step1');
 [previous_model, pre_keeps] = weakly_dual_train_step(image_roidb_train, models, box_param, base_select, pre_keeps, gamma, class_limit, rng_seed, cache_dir, debug_cache_dir);

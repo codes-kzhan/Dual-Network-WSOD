@@ -35,7 +35,8 @@ function [mAP, mean_loc] = weakly_test_all(confs, imdb, roidb, varargin)
 %%  init log
     timestamp = datestr(datevec(now()), 'yyyymmdd_HHMMSS');
     mkdir_if_missing(fullfile(cache_dir, 'log'));
-    log_file = fullfile(cache_dir, 'log', [opts.log_prefix, 'test_', timestamp, '.txt']);
+    log_file  = fullfile(cache_dir, 'log', [opts.log_prefix, 'test_', timestamp, '.txt']);
+    save_file = fullfile(cache_dir, 'log', [opts.log_prefix, 'test_', timestamp, '.mat']);
     diary(log_file);
     
     num_images = length(imdb.image_ids);
@@ -87,20 +88,25 @@ function [mAP, mean_loc] = weakly_test_all(confs, imdb, roidb, varargin)
     max_per_image = 400;
     % detection thresold for each class (this is adaptively set based on the max_per_set constraint)
     thresh = -inf * ones(num_classes, 1);
-    aboxes_map = cell(num_classes, 1);
+
+    num_nets   = numel(opts.net_defs);
+
+    aboxes_map = cell(num_classes, num_nets);
     for i = 1:num_classes
-        aboxes_map{i} = cell(length(imdb.image_ids), 1);
+        for j = 1:num_nets
+          aboxes_map{i, j} = cell(num_images, 1);
+        end
     end
-    aboxes_cor = cell(num_images, 1);
 
     t_start = tic;
 
 
-    for inet = 1:numel(opts.net_defs)
+    for inet = 1:num_nets
       caffe.reset_all();
       caffe_net = caffe.Net(opts.net_defs{inet}, 'test');
       caffe_net.copy_from(opts.net_models{inet});
-      fprintf('>>> %3d/%3d net procedure\n', inet, numel(opts.net_defs));
+      fprintf('>>> %3d / %3d net-prototxt:: %s\n', inet, num_nets, opts.net_defs{inet});
+      fprintf('>>> %3d / %3d net-weights :: %s\n', inet, num_nets, opts.net_models{inet});
 
       for i = 1:num_images
 
@@ -113,94 +119,150 @@ function [mAP, mean_loc] = weakly_test_all(confs, imdb, roidb, varargin)
         for j = 1:num_classes
             cls_boxes = boxes(:, (1+(j-1)*4):((j)*4));
             cls_scores = scores(:, j);
-            temp = cat(2, single(cls_boxes), single(cls_scores));
-            if (isempty(aboxes_map{j}{i}))
-              aboxes_map{j}{i} = temp;
-            else
-              aboxes_map{j}{i} = aboxes_map{j}{i} + temp;
-            end
+            %temp = cat(2, single(cls_boxes), single(cls_scores));
+            aboxes_map{j, inet}{i} = cat(2, single(cls_boxes), single(cls_scores));
         end
       end
     end
-    for i = 1:num_images
-      for j = 1:num_classes
-        aboxes_map{j}{i} = aboxes_map{j}{i} ./ numel(opts.net_defs);
-      end
-    end
-    %%% For CorLoc
-    for i = 1:num_images
-      cor_boxes = zeros(0, 4);
-      for cls = 1:num_classes
-        taboxes = aboxes_map{cls}{i};
-        tscore = taboxes(:, 5);
-        tboxes = taboxes(:, 1:4);
-        [~, idx] = max(tscore);
-        cor_boxes = [cor_boxes; tboxes(idx,:)];
-      end
-      aboxes_cor{i} = cor_boxes;
-    end
-    for i = 1:numel(aboxes_cor)
-      assert (size(aboxes_cor{i}, 1) == num_classes);
-      assert (size(aboxes_cor{i}, 2) == 4);
-    end
-    %%% For mAP
-    for j = 1:num_classes
-      [aboxes_map{j}, thresh(j)] = ...
-        keep_top_k(aboxes_map{j}, max_per_set, thresh(j));
-    end
-
     caffe.reset_all(); 
     rng(prev_rng);
-
 
     % ------------------------------------------------------------------------
     % Peform Corloc evaluation
     % ------------------------------------------------------------------------
     tic;
+    aboxes_cor = cell(num_images, 1);
+
+    res_cor_net = cell(num_nets, 1);
+    for inet = 1:num_nets
+
+        %%% Calculate 
+        aboxes_cor_net = cell(num_images, 1);
+        for i = 1:num_images
+          cor_boxes = zeros(0, 4); 
+          for cls = 1:num_classes
+            taboxes = aboxes_map{cls, inet}{i};
+            tscore = taboxes(:, 5); 
+            tboxes = taboxes(:, 1:4);
+            [~, idx] = max(tscore);
+            cor_boxes = [cor_boxes; tboxes(idx,:)];
+          end 
+          aboxes_cor_net{i} = cor_boxes;
+
+          if (isempty(aboxes_cor{i}))
+            aboxes_cor{i} = cor_boxes ./ num_nets;
+          else
+            aboxes_cor{i} = aboxes_cor{i} + cor_boxes ./ num_nets;
+          end
+        end 
+        [res_cor_net{inet}] = corloc(num_classes, gt_boxes, aboxes_cor_net, 0.5);
+        res_cor_net{inet} = res_cor_net{inet} * 100;
+    end
+
     [res_cor] = corloc(num_classes, gt_boxes, aboxes_cor, 0.5);
     fprintf('\n~~~~~~~~~~~~~~~~~~~~\n');
-    fprintf('Results:\n');
+    fprintf('Fusion CorLoc Results:\n');
     res_cor = res_cor * 100;
     assert( numel(classes) == numel(res_cor));
     for idx = 1:numel(res_cor)
-      fprintf('%12s : corloc : %5.2f\n', classes{idx}, res_cor(idx));
+      if (num_nets == 2)
+        fprintf('%12s : corloc : %5.2f  [%5.2f , %5.2f ]\n', classes{idx}, res_cor(idx), res_cor_net{1}(idx), res_cor_net{2}(idx));
+      else
+        fprintf('%12s : corloc : %5.2f\n', classes{idx}, res_cor(idx));
+      end
     end 
-    fprintf('\nmean corloc : %.4f\n', mean(res_cor));
+    if (num_nets == 2)
+      fprintf('\nmean corloc : %.4f  [%.4f  , %.4f]\n', mean(res_cor), mean(res_cor_net{1}), mean(res_cor_net{2}));
+    else
+      fprintf('\nmean corloc : %.4f\n', mean(res_cor));
+    end
     fprintf('~~~~~~~~~~~~~~~~~~~~ evaluate cost %.2f s\n', toc);
     mean_loc = mean(res_cor);
+
+
 
     % ------------------------------------------------------------------------
     % Peform AP evaluation
     % ------------------------------------------------------------------------
-
+    %%% For mAP
+    res_map_net = cell(num_nets, 1);
+    assert (isequal(imdb.eval_func, @imdb_eval_voc));
     tic;
-    if isequal(imdb.eval_func, @imdb_eval_voc)
-        %new_parpool();
-        parfor model_ind = 1:num_classes
-          cls = imdb.classes{model_ind};
-          res(model_ind) = imdb.eval_func(cls, aboxes_map{model_ind}, imdb, opts.cache_name, opts.suffix);
-        end
-    else
-    % ilsvrc
-        res = imdb.eval_func(aboxes_map, imdb, opts.cache_name, opts.suffix);
+
+    aboxes_map_fusion = cell(num_classes, 1);
+    for i = 1:num_classes
+      aboxes_map_fusion{i} = cell(num_images, 1);
     end
 
-    if ~isempty(res)
+    for inet = 1:num_nets
+      aboxes_map_net = cell(num_classes, 1);
+      for i = 1:num_classes
+        aboxes_map_net{i} = cell(num_images, 1);
+      end
+
+      for j = 1:num_classes
+        [aboxes_map_net{j}] = keep_top_k(aboxes_map{j, inet}, max_per_set);
+      end
+      temp = cell(num_classes, 1); 
+      parfor model_ind = 1:num_classes
+          cls = imdb.classes{model_ind};
+          temp{model_ind} = imdb.eval_func(cls, aboxes_map_net{model_ind}, imdb, opts.cache_name, opts.suffix);
+      end
+      temp = cat(1, temp{:});   temp = [temp(:).ap]' * 100;
+      res_map_net{inet} = temp;
+  
+      %% Fusion
+      for j = 1:num_classes
+        for i = 1:num_images
+          if (isempty(aboxes_map_fusion{j}{i}))
+            aboxes_map_fusion{j}{i} = aboxes_map{j, inet}{i} ./ num_nets;
+          else
+            aboxes_map_fusion{j}{i} = aboxes_map{j, inet}{i} ./ num_nets + aboxes_map_fusion{j}{i};
+          end
+        end
+      end
+      %% END Fusion
+    end
+    aboxes_map = cell(num_classes, 1);
+    for j = 1:num_classes
+        [aboxes_map{j}] = keep_top_k(aboxes_map_fusion{j}, max_per_set);
+    end
+
+    res_map = cell(num_classes, 1);
+    parfor model_ind = 1:num_classes
+        cls = imdb.classes{model_ind};
+        res_map{model_ind} = imdb.eval_func(cls, aboxes_map{model_ind}, imdb, opts.cache_name, opts.suffix);
+    end
+    res_map = cat(1, res_map{:});
+    
+
+
+    if ~isempty(res_map)
         fprintf('\n~~~~~~~~~~~~~~~~~~~~\n');
-        fprintf('Results:\n');
-        aps = [res(:).ap]' * 100;
+        fprintf('Fusion meanAP Results:\n');
+        aps = [res_map(:).ap]' * 100;
         %disp(aps);
         assert( numel(classes) == numel(aps));
         for idx = 1:numel(aps)
-            fprintf('%12s : %5.2f\n', classes{idx}, aps(idx));
+            if (num_nets == 2)
+              fprintf('%12s : %5.2f  [%5.2f , %5.2f]\n', classes{idx}, aps(idx), res_map_net{1}(idx), res_map_net{2}(idx));
+            else
+              fprintf('%12s : %5.2f\n', classes{idx}, aps(idx));
+            end
         end
-        fprintf('\nmean mAP : %.4f\n', mean(aps));
+        if (num_nets == 2)
+          fprintf('\nmean mAP : %.4f  [%.4f , %.4f]\n', mean(aps), mean(res_map_net{1}), mean(res_map_net{2}));
+        else
+          fprintf('\nmean mAP : %.4f\n', mean(aps));
+        end
         %disp(mean(aps));
         fprintf('~~~~~~~~~~~~~~~~~~~~ evaluate cost %.2f s\n', toc);
         mAP = mean(aps);
     else
         mAP = nan;
     end
+
+    save(save_file, 'res_cor_net', 'res_cor', 'mean_loc', 'res_map_net', 'res_map', 'mAP', '-v7.3');
 
     %%% Print For Latex
     fprintf('CorLoc :  ');
@@ -212,13 +274,14 @@ function [mAP, mean_loc] = weakly_test_all(confs, imdb, roidb, varargin)
       fprintf('%.1f & ', aps(j));
     end
     fprintf('   %.1f \n', mAP);
+
     
     diary off;
 end
 
 
 % ------------------------------------------------------------------------
-function [boxes, thresh] = keep_top_k(boxes, top_k, thresh)
+function [boxes] = keep_top_k(boxes, top_k)
 % ------------------------------------------------------------------------
     % Keep top K
     X = cat(1, boxes{:});

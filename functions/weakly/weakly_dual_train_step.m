@@ -74,18 +74,22 @@ function [previous_model, next_keeps] = weakly_dual_train_step(image_roidb_train
     end
     P_image_roidb_train = cat(1, P_image_roidb_train{:});
 
-    fprintf('\n-------Start Loop with total base_select : %4d----- %4d -> %5d\n', base_select, numel(image_roidb_train), numel(P_image_roidb_train));
+    fprintf('\n-------Start Loop with total base_select : %4d----- %4d -> %5d\n', sum(base_select), numel(image_roidb_train), numel(P_image_roidb_train));
     [A_image_roidb_train] = weakly_generate_pseudo(models, P_image_roidb_train);
 
     loss_save_ratio = 0.9;
-    next_keeps = false(size(pre_keeps));
+    base_select = base_select ./ loss_save_ratio;
+    next_keeps = false(size(pre_keeps), numel(models));
     for idx = 1:numel(models)
         fprintf('>>>>>>>>For %3d : %s\n', idx, models{idx}.name);
 
+        %% Design select how much
         pre_base_select = inloop_cal_num(A_image_roidb_train, classes);
-        if (sum(pre_base_select) >= base_select)
-           pre_base_select = ceil( pre_base_select * base_select / sum(pre_base_select) / loss_save_ratio) + 1;
-        end
+        if (sum(pre_base_select) >= sum(base_select))
+           pre_base_select = ceil( pre_base_select * sum(base_select) / sum(pre_base_select) ) + 1;
+        end 
+        pre_base_select = max([base_select;pre_base_select]);
+
         [S_image_roidb_train] = weakly_filter_score(models, A_image_roidb_train, pre_base_select);
         [S_image_roidb_train] = weakly_full_targets(models{idx}.conf, S_image_roidb_train, box_params{idx}.bbox_means, box_params{idx}.bbox_stds);
 
