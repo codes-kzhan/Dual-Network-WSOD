@@ -5,7 +5,7 @@ clear is_valid_handle; % to clear init_key
 %%run(fullfile(fileparts(fileparts(mfilename('fullpath'))), 'startup'));
 %% -------------------- CONFIG --------------------
 opts.caffe_version          = 'caffe';
-opts.gpu_id                 = 3;%auto_select_gpu();
+opts.gpu_id                 = 2;%auto_select_gpu();
 active_caffe_mex(opts.gpu_id, opts.caffe_version);
 fprintf('Gpu config done : %d\n', opts.gpu_id);
 
@@ -60,7 +60,7 @@ opts.cache_name             = ['T07-seed_', num2str(rng_seed), '-', models{1}.na
 % dataset
 dataset                     = [];
 dataset                     = Dataset.voc2007_trainval_ss(dataset, 'train', false, false);
-dataset                     = Dataset.voc2007_test_ss(dataset, 'test', false);
+dataset                     = Dataset.voc2007_test_ss(dataset, 'test', false, false);
 imdbs_name                  = cell2mat(cellfun(@(x) x.name, dataset.imdb_train,'UniformOutput', false));
 
 mkdir_if_missing(['output/', 'weakly_cachedir/', opts.cache_name]);
@@ -73,7 +73,7 @@ step1_models                = cell(2,1);
 step1_models{1}             = models{1}.cur_net_file;
 step1_models{2}             = models{2}.cur_net_file;
 
-corloc                      = weakly_test_Cor_v2({models{1}.conf, models{2}.conf}, dataset.imdb_train{2}, dataset.roidb_train{2}, ... 
+corloc                      = weakly_test_Cor_v2({models{1}.conf, models{2}.conf}, dataset.imdb_train{1}, dataset.roidb_train{1}, ... 
                                 'net_defs',        {models{1}.test_net_def_file, models{2}.test_net_def_file}, ... 
                                 'net_models',      step1_models, ... 
                                 'cache_name',      opts.cache_name, ...
