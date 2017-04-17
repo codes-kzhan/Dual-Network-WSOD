@@ -92,6 +92,8 @@ function mean_loc = weakly_test_Cor_v2(confs, imdb, roidb, varargin)
 
     num_nets   = numel(opts.net_defs);
     t_start = tic;
+    aboxes_cor_net = cell(num_images, num_nets);
+
     for inet = 1:num_nets
       caffe.reset_all();
       caffe_net = caffe.Net(opts.net_defs{inet}, 'test');
@@ -105,16 +107,25 @@ function mean_loc = weakly_test_Cor_v2(confs, imdb, roidb, varargin)
         im = imread(imdb.image_at(i));
 
         [boxes, scores] = weakly_im_detect(confs{inet}, caffe_net, im, d.boxes(~d.gt,:), confs{inet}.max_rois_num_in_gpu);
+
+        cor_boxes = zeros(0, 4);
         for j = 1:num_classes
             cls_boxes = boxes(:, (1+(j-1)*4):((j)*4));
             cls_scores = scores(:, j);
-            temp = cat(2, single(cls_boxes), single(cls_scores)) / num_nets;
+            temp = cat(2, single(cls_boxes), single(cls_scores));
             if (isempty(all_boxes{i,j}))
-              all_boxes{i,j} = temp;
+              all_boxes{i,j} = temp / num_nets;
             else
-              all_boxes{i,j} = all_boxes{i,j} + temp;
+              all_boxes{i,j} = all_boxes{i,j} + temp / num_nets;
             end
+
+            tscore = temp(:, 5); 
+            tboxes = temp(:, 1:4);
+            [~, idx] = max(tscore);
+            cor_boxes = [cor_boxes; tboxes(idx,:)];
         end
+      
+        aboxes_cor_net{i, inet} = cor_boxes;
       end
     end
 
@@ -126,6 +137,11 @@ function mean_loc = weakly_test_Cor_v2(confs, imdb, roidb, varargin)
         all_boxes{i,cls} = tboxes(idx,:);
       end
     end
+    res_cor_net = cell(num_nets, 1); 
+    for inet = 1:num_nets
+      res_cor_net{inet} = corloc(num_classes, gt_boxes, aboxes_cor_net, 0.5);
+      res_cor_net{inet} = res_cor_net{inet} * 100;
+    end
 
     caffe.reset_all(); 
     rng(prev_rng);
@@ -136,17 +152,37 @@ function mean_loc = weakly_test_Cor_v2(confs, imdb, roidb, varargin)
     % Peform Corloc evaluation
     % ------------------------------------------------------------------------
     tic;
-    [res] = corloc(num_classes, gt_boxes, all_boxes, 0.5);
+    res_cor = corloc(num_classes, gt_boxes, all_boxes, 0.5);
     fprintf('\n~~~~~~~~~~~~~~~~~~~~\n');
-    fprintf('Results:\n');
-    res = res * 100;
-    assert( numel(classes) == numel(res));
-    for idx = 1:numel(res)
-      fprintf('%12s : corloc : %5.2f\n', classes{idx}, res(idx));
+    fprintf('Fusion CorLoc Results:\n');
+    res_cor = res_cor * 100;
+    assert( numel(classes) == numel(res_cor));
+    for idx = 1:numel(res_cor)
+      if (num_nets == 2)
+        fprintf('%12s : corloc : %5.2f  [%5.2f , %5.2f ]\n', classes{idx}, res_cor(idx), res_cor_net{1}(idx), res_cor_net{2}(idx));
+      else
+        fprintf('%12s : corloc : %5.2f\n', classes{idx}, res_cor(idx));
+      end
+    end 
+    if (num_nets == 2)
+      fprintf('\nmean corloc : %.4f  [%.4f  , %.4f]\n', mean(res_cor), mean(res_cor_net{1}), mean(res_cor_net{2}));
+    else
+      fprintf('\nmean corloc : %.4f\n', mean(res_cor));
     end
-    fprintf('\nmean corloc : %.4f\n', mean(res));
     fprintf('~~~~~~~~~~~~~~~~~~~~ evaluate cost %.2f s\n', toc);
-    mean_loc = mean(res);
+    for inet = 1:num_nets
+      fprintf('S%d :', inet);
+      for cls = 1:numel(classes)
+        fprintf(' %.1f &', res_cor_net{inet}(cls));
+      end
+      fprintf('\n');
+    end
+    fprintf('MM :');
+    for cls = 1:numel(classes)
+      fprintf(' %.1f &', res_cor(cls));
+    end
+    fprintf('\n');
+    mean_loc = mean(res_cor);
 
     diary off;
 end

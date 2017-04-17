@@ -55,7 +55,7 @@ if (exclude_difficult_samples == false)
 else
   difficult_string          = 'easy';
 end
-opts.cache_name             = ['V12-seed_', num2str(rng_seed), '-', models{1}.name, '-', models{2}.name, '-L', num2str(class_limit), '-Rng', num2str(rng_seed), '-', difficult_string];
+opts.cache_name             = ['T12-seed_', num2str(rng_seed), '-', models{1}.name, '-', models{2}.name, '-L', num2str(class_limit), '-Rng', num2str(rng_seed), '-', difficult_string];
 
 % dataset
 dataset                     = [];
