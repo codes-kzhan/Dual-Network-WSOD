@@ -92,7 +92,10 @@ function mean_loc = weakly_test_Cor_v2(confs, imdb, roidb, varargin)
 
     num_nets   = numel(opts.net_defs);
     t_start = tic;
-    aboxes_cor_net = cell(num_images, num_nets);
+    aboxes_cor_net = cell(num_nets, 1);
+    for inet = 1:num_nets
+      aboxes_cor_net{inet} = cell(num_images, num_classes);
+    end
 
     for inet = 1:num_nets
       caffe.reset_all();
@@ -122,10 +125,8 @@ function mean_loc = weakly_test_Cor_v2(confs, imdb, roidb, varargin)
             tscore = temp(:, 5); 
             tboxes = temp(:, 1:4);
             [~, idx] = max(tscore);
-            cor_boxes = [cor_boxes; tboxes(idx,:)];
+            aboxes_cor_net{inet}{i, j} = tboxes(idx,:);
         end
-      
-        aboxes_cor_net{i, inet} = cor_boxes;
       end
     end
 
@@ -139,7 +140,7 @@ function mean_loc = weakly_test_Cor_v2(confs, imdb, roidb, varargin)
     end
     res_cor_net = cell(num_nets, 1); 
     for inet = 1:num_nets
-      res_cor_net{inet} = corloc(num_classes, gt_boxes, aboxes_cor_net, 0.5);
+      res_cor_net{inet} = corloc(num_classes, gt_boxes, aboxes_cor_net{inet}, 0.5);
       res_cor_net{inet} = res_cor_net{inet} * 100;
     end
 
@@ -175,13 +176,13 @@ function mean_loc = weakly_test_Cor_v2(confs, imdb, roidb, varargin)
       for cls = 1:numel(classes)
         fprintf(' %.1f &', res_cor_net{inet}(cls));
       end
-      fprintf('\n');
+      fprintf('  %.1f\n', mean(res_cor_net{inet}));
     end
     fprintf('MM :');
     for cls = 1:numel(classes)
       fprintf(' %.1f &', res_cor(cls));
     end
-    fprintf('\n');
+    fprintf('  %.1f\n', mean(res_cor));
     mean_loc = mean(res_cor);
 
     diary off;
