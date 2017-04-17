@@ -47,7 +47,7 @@ models{1}.conf              = fast_rcnn_config('image_means', models{1}.mean_ima
                                                'max_epoch', 4, 'step_epoch', 2, ...
                                                'regression', true, ...
                                                'max_rois_num_in_gpu', 1000);
-box_param{2}                = load(fullfile(pwd, 'models', 'pre_trained_models', 'fast_box_param.mat'));
+box_param{1}                = load(fullfile(pwd, 'models', 'pre_trained_models', 'fast_box_param.mat'));
 
 % cache name
 if (exclude_difficult_samples == false)
