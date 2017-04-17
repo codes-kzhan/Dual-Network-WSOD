@@ -5,7 +5,7 @@ clear is_valid_handle; % to clear init_key
 %%run(fullfile(fileparts(fileparts(mfilename('fullpath'))), 'startup'));
 %% -------------------- CONFIG --------------------
 opts.caffe_version          = 'caffe';
-opts.gpu_id                 = 2;%auto_select_gpu();
+opts.gpu_id                 = 3;%auto_select_gpu();
 active_caffe_mex(opts.gpu_id, opts.caffe_version);
 fprintf('Gpu config done : %d\n', opts.gpu_id);
 
