@@ -5,7 +5,7 @@ clear is_valid_handle; % to clear init_key
 %%run(fullfile(fileparts(fileparts(mfilename('fullpath'))), 'startup'));
 %% -------------------- CONFIG --------------------
 opts.caffe_version          = 'caffe';
-opts.gpu_id                 = 2;%auto_select_gpu();
+opts.gpu_id                 = 1;%auto_select_gpu();
 active_caffe_mex(opts.gpu_id, opts.caffe_version);
 fprintf('Gpu config done : %d\n', opts.gpu_id);
 
@@ -24,30 +24,29 @@ rng_seed                    = randi(10000);
 models                      = cell(2,1);
 box_param                   = cell(2,1);
 
-models{1}.solver_def_file   = fullfile(pwd, 'models', 'rfcn_prototxts', 'ResNet-50L_OHEM_res3a', 'solver_lr1_3.prototxt');
-models{1}.test_net_def_file = fullfile(pwd, 'models', 'rfcn_prototxts', 'ResNet-50L_OHEM_res3a', 'test.prototxt');
-models{1}.net_file          = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'ResNet-50-model.caffemodel');
-models{1}.cur_net_file      = fullfile(pwd, 'models', 'trained', 'Res50r-OHEM-Rfcn_init_final.caffemodel');
-models{1}.name              = 'Res50r-OHEM-Rfcn';
-models{1}.mean_image        = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'mean_image.mat');
-models{1}.conf              = rfcn_config_ohem('image_means', models{1}.mean_image, ... 
+models{2}.solver_def_file   = fullfile(pwd, 'models', 'rfcn_prototxts', 'ResNet-50L_OHEM_res3a', 'solver_lr1_3.prototxt');
+models{2}.test_net_def_file = fullfile(pwd, 'models', 'rfcn_prototxts', 'ResNet-50L_OHEM_res3a', 'test.prototxt');
+models{2}.net_file          = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'ResNet-50-model.caffemodel');
+models{2}.cur_net_file      = fullfile(pwd, 'models', 'trained', 'Res50r-OHEM-Rfcn_init_final.caffemodel');
+models{2}.name              = 'Res50r-OHEM-Rfcn';
+models{2}.mean_image        = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'mean_image.mat');
+models{2}.conf              = rfcn_config_ohem('image_means', models{2}.mean_image, ... 
                                                'classes', classes, ... 
                                                'max_epoch', 4, 'step_epoch', 2, ... 
                                                'regression', true);
-box_param{1}                = load(fullfile(pwd, 'models', 'pre_trained_models', 'box_param.mat'));
+box_param{2}                = load(fullfile(pwd, 'models', 'pre_trained_models', 'box_param.mat'));
 
-models{2}.solver_def_file   = fullfile(pwd, 'models', 'fast_rcnn_prototxts', 'resnet50_res5', 'solver_lr1_3.prototxt');
-models{2}.test_net_def_file = fullfile(pwd, 'models', 'fast_rcnn_prototxts', 'resnet50_res5', 'test.prototxt');
-models{2}.net_file          = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'ResNet-50-model.caffemodel');
-%models{2}.cur_net_file      = fullfile(pwd, 'models', 'trained', 'Res50r-SIMPLE-Fast_init_final.caffemodel');
-models{2}.cur_net_file      = fullfile(pwd, 'models', 'trained', 'Res50r-SIMPLE-Fast-Stage1_init_final.caffemodel');
-models{2}.name              = 'Res50r-SIMPLE-Fast';
-models{2}.mean_image        = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'mean_image.mat');
-models{2}.conf              = fast_rcnn_config('image_means', models{2}.mean_image, ...
+models{1}.solver_def_file   = fullfile(pwd, 'models', 'fast_rcnn_prototxts', 'resnet50_res5', 'solver_lr1_3.prototxt');
+models{1}.test_net_def_file = fullfile(pwd, 'models', 'fast_rcnn_prototxts', 'resnet50_res5', 'test.prototxt');
+models{1}.net_file          = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'ResNet-50-model.caffemodel');
+models{1}.cur_net_file      = fullfile(pwd, 'models', 'trained', 'Res50r-SIMPLE-Fast-Stage1_init_final.caffemodel');
+models{1}.name              = 'Res50r-SIMPLE-Fast';
+models{1}.mean_image        = fullfile(pwd, 'models', 'pre_trained_models', 'ResNet-50L', 'mean_image.mat');
+models{1}.conf              = fast_rcnn_config('image_means', models{1}.mean_image, ...
                                                'classes', classes, ...
                                                'max_epoch', 4, 'step_epoch', 2, ...
                                                'regression', true, ...
-                                               'max_rois_num_in_gpu',  900);
+                                               'max_rois_num_in_gpu', 1000);
 box_param{2}                = load(fullfile(pwd, 'models', 'pre_trained_models', 'fast_box_param.mat'));
 
 % cache name
@@ -111,10 +110,9 @@ debug_cache_dir = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, 'd
 
 pre_keeps                   = zeros(numel(image_roidb_train), numel(models));
 gamma                       = 0.3;
-base_select                 = 6000;
 base_select                 =  [40, 12, 10, 20, 20, 10, 50, 25, 15, 10,...
                                 20, 15, 15, 30, 15, 15, 15, 20, 40, 35];
-base_select                 = ceil(base_select * (4000 / sum(base_select)));
+base_select                 = ceil(base_select * (7000 / sum(base_select)));
 
 cache_dir                   = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, [imdbs_name, '_step1']);
 debug_cache_dir             = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, 'debug_step1');
@@ -127,7 +125,7 @@ corloc                      = weakly_test_Cor_v2({models{1}.conf, models{2}.conf
                                 'net_defs',        {models{1}.test_net_def_file, models{2}.test_net_def_file}, ... 
                                 'net_models',      step1_models, ... 
                                 'cache_name',      opts.cache_name, ... 
-                                'log_prefix',      'co_cor_final',
+                                'log_prefix',      'co_cor_final', ...
                                 'ignore_cache',    true);
 
 res_path                    = weakly_online_test({models{1}.conf, models{2}.conf}, dataset.imdb_test, dataset.roidb_test, ...
