@@ -5,7 +5,7 @@ clear is_valid_handle; % to clear init_key
 %%run(fullfile(fileparts(fileparts(mfilename('fullpath'))), 'startup'));
 %% -------------------- CONFIG --------------------
 opts.caffe_version          = 'caffe';
-opts.gpu_id                 = 2;%auto_select_gpu();
+opts.gpu_id                 = 1;%auto_select_gpu();
 active_caffe_mex(opts.gpu_id, opts.caffe_version);
 fprintf('Gpu config done : %d\n', opts.gpu_id);
 
@@ -47,7 +47,7 @@ models{2}.conf              = fast_rcnn_config('image_means', models{2}.mean_ima
                                                'classes', classes, ...
                                                'max_epoch', 4, 'step_epoch', 2, ...
                                                'regression', true, ...
-                                               'max_rois_num_in_gpu',  900);
+                                               'max_rois_num_in_gpu',  1000);
 box_param{2}                = load(fullfile(pwd, 'models', 'pre_trained_models', 'fast_box_param.mat'));
 
 % cache name

@@ -79,7 +79,7 @@ function [previous_model, next_keeps] = weakly_dual_train_step(image_roidb_train
 
     loss_save_ratio = 0.9;
     base_select = base_select ./ loss_save_ratio;
-    next_keeps = false(size(pre_keeps), numel(models));
+    next_keeps = false(size(pre_keeps));
     for idx = 1:numel(models)
         fprintf('>>>>>>>>For %3d : %s\n', idx, models{idx}.name);
 
