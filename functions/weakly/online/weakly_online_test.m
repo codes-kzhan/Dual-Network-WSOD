@@ -100,9 +100,8 @@ function res = weakly_online_test(confs, imdb, roidb, varargin)
       for i = 1:num_images
 
         if (rem(i, opts.dis_itertion) == 1), fprintf('%s: test (%s) %d/%d cost : %.1f s\n', procid(), imdb.name, i, num_images, toc(t_start)); end
-        d = roidb.rois(i);
         im = imread(imdb.image_at(i));
-        pre_boxes = d.boxes(~d.gt, :);
+        pre_boxes = roidb.test_boxes{i};
         [boxes, scores] = weakly_im_detect(confs{inet}, caffe_net, im, pre_boxes, confs{inet}.max_rois_num_in_gpu);
 
         for j = 1:num_classes
