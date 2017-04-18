@@ -47,6 +47,9 @@ function [previous_model, next_keeps] = weakly_dual_train_step(image_roidb_train
     caffe.set_mode_gpu(); 
     
     train_modes = cell(numel(models), 1);
+    fprintf('cache_dir       : %s\n', cache_dir);
+    fprintf('debug_cache_dir : %s\n', debug_cache_dir);
+    fprintf('gamma : %.3f  ,  rng_seed : %.3f\n', gamma, rng_seed);
     for idx = 1:numel(models)
       train_modes{idx} = weakly_train_mode(models{idx}.conf);
       fprintf('conf: %2d : %s :: train mode : %d\n', idx, models{idx}.name, train_modes{idx});

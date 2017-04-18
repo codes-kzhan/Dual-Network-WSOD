@@ -59,7 +59,7 @@ opts.cache_name             = ['T12-seed_', num2str(rng_seed), '-', models{1}.na
 
 % dataset
 dataset                     = [];
-dataset                     = Dataset.voc0712_trainval_ss(dataset, 'train', false, false);
+dataset                     = Dataset.voc2012_trainval_ss(dataset, 'train', false, false);
 dataset                     = Dataset.voc2012_test2online_ss(dataset, 'test', false);
 imdbs_name                  = cell2mat(cellfun(@(x) x.name, dataset.imdb_train,'UniformOutput', false));
 
@@ -73,7 +73,7 @@ step1_models                = cell(2,1);
 step1_models{1}             = models{1}.cur_net_file;
 step1_models{2}             = models{2}.cur_net_file;
 
-corloc                      = weakly_test_Cor_v2({models{1}.conf, models{2}.conf}, dataset.imdb_train{2}, dataset.roidb_train{2}, ... 
+corloc                      = weakly_test_Cor_v2({models{1}.conf, models{2}.conf}, dataset.imdb_train{1}, dataset.roidb_train{1}, ...
                                 'net_defs',        {models{1}.test_net_def_file, models{2}.test_net_def_file}, ... 
                                 'net_models',      step1_models, ... 
                                 'cache_name',      opts.cache_name, ...
