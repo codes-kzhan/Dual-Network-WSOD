@@ -43,15 +43,6 @@ function res = weakly_online_test(confs, imdb, roidb, varargin)
     num_classes = imdb.num_classes;
     caffe.reset_all(); 
     
-    %%% Ground Truth for corloc
-    gt_boxes = cell(num_images, 1);
-    for i = 1:num_images
-      gt = roidb.rois(i).gt;
-      Struct = struct('class', roidb.rois(i).class(gt), ...
-                      'boxes', roidb.rois(i).boxes(gt,:));
-      gt_boxes{i} = Struct;
-    end
-    
 %%  testing 
     % init caffe net
     caffe_log_file_base = fullfile(cache_dir, 'caffe_log');
@@ -165,29 +156,5 @@ function [boxes] = keep_top_k(boxes, top_k)
             keep = find(bbox(:,end) >= thresh);
             boxes{image_index} = bbox(keep,:);
         end
-    end
-end
-
-% ------------------------------------------------------------------------
-function [res] = corloc(num_class, gt_boxes, all_boxes, corlocThreshold)
-% ------------------------------------------------------------------------
-    num_image = numel(gt_boxes);     assert (num_image == numel(all_boxes));
-    res = zeros(num_class, 1);
-    for cls = 1:num_class
-        overlaps = [];
-        for idx = 1:num_image
-           gt = gt_boxes{idx};
-           gtboxes = gt.boxes(gt.class == cls, :);
-           if (isempty(gtboxes)), continue; end
-           localizedBox = all_boxes{idx}(cls, :);
-           overlap = iou(gtboxes, localizedBox);
-           overlap = max(overlap);
-           if (overlap >= corlocThreshold)
-             overlaps(end+1) = 1;
-           else
-             overlaps(end+1) = 0;
-           end
-        end
-        res(cls) = mean(overlaps);
     end
 end
