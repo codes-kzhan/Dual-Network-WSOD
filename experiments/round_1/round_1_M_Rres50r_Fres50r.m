@@ -58,7 +58,7 @@ if (exclude_difficult_samples == false)
 else
   difficult_string          = 'easy';
 end
-opts.cache_name             = ['R1M-seed_', num2str(rng_seed), '-', models{1}.name, '-', models{2}.name, '-L', num2str(class_limit), '-Rng', num2str(rng_seed), '-', difficult_string];
+opts.cache_name             = ['R1M2007-seed_', num2str(rng_seed), '-', models{1}.name, '-', models{2}.name, '-L', num2str(class_limit), '-Rng', num2str(rng_seed), '-', difficult_string];
 
 % dataset
 dataset                     = [];
@@ -86,7 +86,6 @@ image_roidb_train = temp.image_roidb_train;
 
 pre_keeps                   = zeros(numel(image_roidb_train), numel(models));
 gamma                       = 0.3;
-base_select                 = 4000;
 base_select                 =  [40, 12, 10, 20, 20, 10, 50, 25, 15, 10,...
                                 20, 15, 15, 30, 15, 15, 15, 20, 40, 35];
 base_select                 = ceil(base_select * (4000 / sum(base_select)));

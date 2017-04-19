@@ -31,6 +31,7 @@ function res = weakly_online_test(confs, imdb, roidb, varargin)
 %%  set cache dir
     cache_dir = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, [imdb.name, '_online_results']);
     mkdir_if_missing(cache_dir);
+    fprintf('weakly_online_test cache_dir : %s\n', cache_dir);
 
 %%  init log
     timestamp = datestr(datevec(now()), 'yyyymmdd_HHMMSS');

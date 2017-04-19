@@ -32,7 +32,8 @@ else
   end
 end
 
-conf.cache_dir = fullfile('output', 'weakly_cachedir', cache_name, [imdb.name, '_online_results']);
+cache_dir = fullfile('output', 'weakly_cachedir', cache_name, [imdb.name, '_online_results']);
+fprintf('prepare_online_voc cache_dir : %s\n', cache_dir);
 
 VOCopts  = imdb.details.VOCopts;
 image_ids = imdb.image_ids;
@@ -62,9 +63,9 @@ for i = 1:length(image_ids)
     fprintf(fid, '%s %f %.3f %.3f %.3f %.3f\n', image_ids{i}, bbox(j,end), bbox(j,1:4));
   end
 end
-copyfile(res_fn, conf.cache_dir);
+copyfile(res_fn, cache_dir);
 tempS = regexp(res_fn, '/', 'split');
-res_name = fullfile(conf.cache_dir, tempS{end});
+res_name = fullfile(cache_dir, tempS{end});
 fclose(fid);
 %delete(res_fn);
 
