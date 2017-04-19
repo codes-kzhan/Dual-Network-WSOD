@@ -66,7 +66,7 @@ copyfile(res_fn, conf.cache_dir);
 tempS = regexp(res_fn, '/', 'split');
 res_name = fullfile(conf.cache_dir, tempS{end});
 fclose(fid);
-delete(res_fn);
+%delete(res_fn);
 
 rmpath(fullfile(VOCopts.datadir, 'VOCcode')); 
 end

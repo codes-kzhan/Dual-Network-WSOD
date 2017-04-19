@@ -29,7 +29,7 @@ function res = weakly_online_test(confs, imdb, roidb, varargin)
     weakly_assert_conf(confs);
     classes = confs{1}.classes;
 %%  set cache dir
-    cache_dir = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, [imdb.name, '_mAP']);
+    cache_dir = fullfile(pwd, 'output', 'weakly_cachedir', opts.cache_name, [imdb.name, '_online_results']);
     mkdir_if_missing(cache_dir);
 
 %%  init log

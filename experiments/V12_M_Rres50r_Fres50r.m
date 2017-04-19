@@ -137,6 +137,7 @@ res_path                    = weakly_online_test({models{1}.conf, models{2}.conf
                                 'cache_name',       opts.cache_name,...
                                 'ignore_cache',     true);
 
+prepare_submit_voc(res_path, opts.cache_name, 'stage1_submit');
 
 %{
 base_select            = 4300;
