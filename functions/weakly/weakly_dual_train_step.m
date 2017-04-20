@@ -96,7 +96,7 @@ function [previous_model, next_keeps] = weakly_dual_train_step(image_roidb_train
         [S_image_roidb_train] = weakly_filter_score(models, A_image_roidb_train, pre_base_select);
         [S_image_roidb_train] = weakly_full_targets(models{idx}.conf, S_image_roidb_train, box_params{idx}.bbox_means, box_params{idx}.bbox_stds);
 
-        inloop_debug(S_image_roidb_train, classes, debug_cache_dir, [models{idx}.name, '_S']); end
+        inloop_debug(S_image_roidb_train, classes, debug_cache_dir, [models{idx}.name, '_S']);
 
         if (numel(models) == 2),     pre_keep = pre_keeps(:,3-idx);
         elseif (numel(models) == 1), pre_keep = pre_keeps;
