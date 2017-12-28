@@ -1,37 +1,47 @@
-# *R-FCN*: Object Detection via Region-based Fully Convolutional Networks
+# A Dual-Network Progressive Approach to Weakly Supervised Object Detection
 
-By Jifeng Dai, Yi Li, Kaiming He, Jian Sun
-
-**It is highly recommended to use the [python version of R-FCN](https://github.com/Orpine/py-R-FCN), which supports end-to-end training/inference of R-FCN for object detection.**
+By Xuanyi Dong, Deyu Meng, Fan Ma, Yi Yang. Accepted by ACM Multimedia 2017.
 
 ### Introduction
 
-**R-FCN** is a region-based object detection framework leveraging deep fully-convolutional networks, which is accurate and efficient. In contrast to previous region-based detectors such as Fast/Faster R-CNN that apply a costly per-region sub-network hundreds of times, our region-based detector is fully convolutional with almost all computation shared on the entire image. R-FCN can natually adopt powerful fully convolutional image classifier backbones, such as [ResNets](https://github.com/KaimingHe/deep-residual-networks), for object detection.
-
-R-FCN was initially described in a [NIPS 2016 paper](https://arxiv.org/abs/1605.06409).
-
-This code has been tested on Windows 7/8 64 bit, Windows Server 2012 R2, and Ubuntu 14.04, with Matlab 2014a.
+**Dual-Network** is a weakly supervised object detection framework leveraging deep CNNs.
 
 ### License
 
-R-FCN is released under the MIT License (refer to the LICENSE file for details).
+Dual-Network is released under the MIT License (refer to the LICENSE file for details).
 
-### Citing R-FCN
+### Citing Dual-Network
 
-If you find R-FCN useful in your research, please consider citing:
+If you find Dual-Network useful in your research, please consider citing:
 
+
+    @inproceedings{dong2017dual,
+        title={A Dual-Network Progressive Approach to Weakly Supervised Object Detection},
+        author={Dong, Xuanyi and Meng, Deyu and Ma, Fan and Yang, Yi},
+        booktitle={Proceedings of the 2017 ACM on Multimedia Conference},
+        pages={279--287},
+        year={2017},
+        organization={ACM}
+    }
+    @inproceedings{kantorov2016,
+        title = {ContextLocNet: Context-aware Deep Network Models for Weakly Supervised Localization},
+        author = {Kantorov, V., Oquab, M., Cho M. and Laptev, I.},
+        booktitle = {Proc. European Conference on Computer Vision (ECCV), 2016},
+        year = {2016}
+    }
     @article{dai16rfcn,
         Author = {Jifeng Dai, Yi Li, Kaiming He, Jian Sun},
         Title = {{R-FCN}: Object Detection via Region-based Fully Convolutional Networks},
         Journal = {arXiv preprint arXiv:1605.06409},
         Year = {2016}
     }
-
-### Main Results
-                   | training data       | test data             | mAP   | time/img (K40) | time/img (Titian X)
--------------------|:-------------------:|:---------------------:|:-----:|:--------------:|:------------------:|
-R-FCN, ResNet-50  | VOC 07+12 trainval  | VOC 07 test           | 77.4% | 0.12sec        | 0.09sec            |
-R-FCN, ResNet-101 | VOC 07+12 trainval  | VOC 07 test           | 79.5% | 0.17sec        | 0.12sec            |
+    @inproceedings{girshick2015fast,
+        title={Fast r-cnn},
+        author={Girshick, Ross},
+        booktitle={Proceedings of the IEEE international conference on computer vision},
+        pages={1440--1448},
+        year={2015}
+    }
 
 
 ### Requirements: software
@@ -79,18 +89,7 @@ GPU: Titan, Titan X, K40, K80.
 
 ### Resources
 
-0. Experiment logs: [OneDrive](https://1drv.ms/u/s!Am-5JzdW2XHzhc44qdRNJTsXLIU-2w), [BaiduYun](http://pan.baidu.com/s/1mhFYejI)
-
-If the automatic "fetch_data" fails, you may manually download resouces from:
-
-0. Pre-complied caffe mex (Windows):
-    - [OneDrive](https://1drv.ms/u/s!Am-5JzdW2XHzhc456RlstMF-4wHr1g), [BaiduYun](http://pan.baidu.com/s/1i4OlG7z)
-0. Demo R-FCN model:
-    - [OneDrive](https://1drv.ms/u/s!Am-5JzdW2XHzhc486Tyvkf3koU7R7w), [BaiduYun](http://pan.baidu.com/s/1o77gFXo)
-0. ImageNet-pretrained networks:
-    - ResNet-50 net [OneDrive](https://1drv.ms/u/s!Am-5JzdW2XHzhc46RPYjtbdbNwPJ_w), [BaiduYun](http://pan.baidu.com/s/1kVm4ly3)
-    - ResNet-101 net [OneDrive](https://1drv.ms/u/s!Am-5JzdW2XHzhc47z4S7O5Ql6W_0-g), [BaiduYun](http://pan.baidu.com/s/1nvgu1pJ)
+0. ImageNet-pretrained networks: [Google Drive](https://drive.google.com/open?id=1xjFL-ZeVzXkY584ZsEnr9O6O3P1Ypjwd)
 0. Pre-computed region proposals:
-    - [OneDrive](https://1drv.ms/u/s!Am-5JzdW2XHzhc49StWpgPo2GPEB_A), [BaiduYun](http://pan.baidu.com/s/1hrAJ5re)
 
 
