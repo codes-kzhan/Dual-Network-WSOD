@@ -4,7 +4,9 @@ By Xuanyi Dong, Deyu Meng, Fan Ma, Yi Yang. Accepted by ACM Multimedia 2017.
 
 ### Introduction
 
-**Dual-Network** is a weakly supervised object detection framework leveraging deep CNNs.
+[**Dual-Network**](https://d-x-y.github.io/pdf/a-dual-network.pdf) is a weakly supervised object detection framework leveraging deep CNNs.
+
+This project is based on the matlab code of [R-FCN](https://github.com/daijifeng001/R-FCN).
 
 ### License
 
@@ -44,52 +46,17 @@ If you find Dual-Network useful in your research, please consider citing:
     }
 
 
-### Requirements: software
+### Resources & Preparation
 
-0. `Caffe` build for R-FCN (included in this repository, see `external/caffe`)
-    - If you are using Windows, you may download a compiled mex file by running `fetch_data/fetch_caffe_mex_windows_vs2013_cuda75.m`
-    - If you are using Linux or you want to compile for Windows, please recompile [our Caffe branch](https://github.com/daijifeng001/caffe-rfcn).
-0.	MATLAB 2014a or later
- 
-    
-### Requirements: hardware
-
-GPU: Titan, Titan X, K40, K80.
-
-### Demo
-0.	Run `fetch_data/fetch_caffe_mex_windows_vs2013_cuda75.m` to download a compiled Caffe mex (for Windows only).
-0.	Run `fetch_data/fetch_demo_model_ResNet101.m` to download a R-FCN model using ResNet-101 net (trained on VOC 07+12 trainval).
-0.	Run `rfcn_build.m`.
-0.	Run `startup.m`.
-0.	Run `experiments/script_rfcn_demo.m` to apply the R-FCN model on demo images.
-
-### Preparation for Training & Testing
-0.	Run `fetch_data/fetch_caffe_mex_windows_vs2013_cuda75.m` to download a compiled Caffe mex (for Windows only).
-0.	Run `fetch_data/fetch_model_ResNet50.m` to download an ImageNet-pre-trained ResNet-50 net.
-0.	Run `fetch_data/fetch_model_ResNet101.m` to download an ImageNet-pre-trained ResNet-101 net.
-0.	Run `fetch_data/fetch_region_proposals.m` to download the pre-computed region proposals.
-0.	Download VOC 2007 and 2012 data to ./datasets.
-0.	Run `rfcn_build.m`.
-0.	Run `startup.m`.
+0. ImageNet-pretrained networks: [Google Drive](https://drive.google.com/open?id=1xjFL-ZeVzXkY584ZsEnr9O6O3P1Ypjwd). Please save the models into the corresponding sub-directory of `models/pre_trained_models`.
+0. The initial pseudo labels for PASCAL VOC 2007 by [ContextLocNet](https://github.com/vadimkantorov/contextlocnet) : [Google Drive](https://drive.google.com/open?id=1wK64uRk6f0DTwUICs3dMy-zZzJEwvZje). Please save and extract it into `data`.
+0. The pre-computed region proposals: [Google Drive](https://drive.google.com/open?id=1a0JF0ReqHRbbpkViO_L33GJUIMSf8wV9). Please save and extract it into `data`.
+0. Download the PASCAL VOC 2007 data into `datasets`, following the README in `datasets`.
+0. Compile `Caffe` located in `external/caffe`.
+0. Run `dual_build.m` to complie the nms mex functions.
+0. Run `startup.m` to 
 
 
 ### Training & Testing
 0. Run `experiments/script_rfcn_VOC0712_ResNet50_OHEM_ss.m` to train a model using ResNet-50 net with online hard example mining (OHEM), leveraging selective search proposals. The accuracy should be ~75.4% in mAP.
     - **Note**: the training time is ~13 hours on Titian X.
-0. Run `experiments/script_rfcn_VOC0712_ResNet50_OHEM_rpn.m` to train a model using ResNet-50 net with OHEM, leveraging RPN proposals (using ResNet-50 net). The accuracy should be ~77.4% in mAP.
-    - **Note**: the training time is ~13 hours on Titian X.
-0. Run `experiments/script_rfcn_VOC0712_ResNet101_OHEM_rpn.m` to train a model using ResNet-101 net with OHEM, leveraging RPN proposals (using ResNet-101 net). The accuracy should be ~79.5% in mAP.
-    - **Note**: the training time is ~19 hours on Titian X.
-0. Check other scripts in `./experiments` for more settings.
-
-**Note:** 
-- In all the experiments, training is performed on VOC 07+12 trainval, and testing is performed on VOC 07 test.
-- Results are subject to some random variations. We have run 'experiments/script_rfcn_VOC0712_ResNet50_OHEM_rpn.m' for 5 times, the results are 77.1%, 77.3%, 77.7%, 77.9%, and 77.0%. The mean is 77.4%, and the std is 0.39%.
-- Running time is not recorded in the test log (which is slower), but instead in an optimized implementation.
-
-### Resources
-
-0. ImageNet-pretrained networks: [Google Drive](https://drive.google.com/open?id=1xjFL-ZeVzXkY584ZsEnr9O6O3P1Ypjwd)
-0. Pre-computed region proposals:
-
-

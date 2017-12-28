@@ -1,9 +1,9 @@
-function rfcn_build()
-% rfcn_build()
+function dual_build()
+% dual_build()
 % --------------------------------------------------------
-% R-FCN implementation
-% Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
-% Copyright (c) 2016, Jifeng Dai
+% Dual-Network implementation
+% Modified from MATLAB R-FCN (https://github.com/daijifeng001/R-FCN)
+% Copyright (c) 2017, Xuanyi Dong
 % Licensed under The MIT License [see LICENSE for details]
 % --------------------------------------------------------
 
@@ -35,4 +35,6 @@ if ~exist('nms_min_mex', 'file')
       -largeArrayDims ...
       functions/nms/nms_min_mex.cpp ...
       -output nms_min_mex;
+end
+
 end

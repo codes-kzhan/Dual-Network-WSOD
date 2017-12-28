@@ -1,9 +1,9 @@
 function startup()
 % startup()
 % --------------------------------------------------------
-% R-FCN implementation
-% Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
-% Copyright (c) 2016, Jifeng Dai
+% Dual-Network implementation
+% Modified from MATLAB R-FCN (https://github.com/daijifeng001/R-FCN)
+% Copyright (c) 2017, Xuanyi Dong
 % Licensed under The MIT License [see LICENSE for details]
 % --------------------------------------------------------
 
@@ -30,8 +30,8 @@ function startup()
 
     mkdir_if_missing(fullfile(curdir, 'models'));
 
-    rfcn_build();
+    dual_build();
     addpath(fullfile(curdir, 'init'));
 
-    fprintf('rfcn startup done\n');
+    fprintf('dual-network startup done\n');
 end
