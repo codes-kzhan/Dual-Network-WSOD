@@ -1,8 +1,8 @@
 function [previous_model, next_keeps] = weakly_dual_train_step(image_roidb_train, models, box_params, base_select, pre_keeps, gamma, class_limit, rng_seed, cache_dir, debug_cache_dir)
 % --------------------------------------------------------
-% R-FCN implementation
+% Dual-Network implementation
 % Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
-% Copyright (c) 2016, Jifeng Dai
+% Copyright (c) 2018, Xuanyi Dong
 % Licensed under The MIT License [see LICENSE for details]
 % --------------------------------------------------------
 

@@ -1,8 +1,8 @@
 function save_model_path = weakly_train_init(image_roidb_train, model, cache_name, box_param, rng_seed)
 % --------------------------------------------------------
-% R-FCN implementation
+% Dual-Network implementation
 % Modified from MATLAB Faster R-CNN (https://github.com/shaoqingren/faster_rcnn)
-% Copyright (c) 2016, Jifeng Dai
+% Copyright (c) 2018, Xuanyi Dong
 % Licensed under The MIT License [see LICENSE for details]
 % --------------------------------------------------------
 

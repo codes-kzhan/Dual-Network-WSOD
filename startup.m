@@ -3,7 +3,7 @@ function startup()
 % --------------------------------------------------------
 % Dual-Network implementation
 % Modified from MATLAB R-FCN (https://github.com/daijifeng001/R-FCN)
-% Copyright (c) 2017, Xuanyi Dong
+% Copyright (c) 2018, Xuanyi Dong
 % Licensed under The MIT License [see LICENSE for details]
 % --------------------------------------------------------
 
