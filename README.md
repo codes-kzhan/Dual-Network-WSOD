@@ -6,7 +6,7 @@ By Xuanyi Dong, Deyu Meng, Fan Ma, Yi Yang. This paper is accepted by [ACM Multi
 
 [**Dual-Network**](https://d-x-y.github.io/pdf/a-dual-network.pdf) is a weakly supervised object detection framework leveraging deep CNN models.
 
-This project is based on the matlab code of [R-FCN](https://github.com/daijifeng001/R-FCN) and also refer to the matlab code of [Fast R-CNN](https://github.com/rbgirshick/fast-rcnn).
+This project is modified on the Matlab code of [R-FCN](https://github.com/daijifeng001/R-FCN) and Fast R-CNN.
 
 ### License
 
